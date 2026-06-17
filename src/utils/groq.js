@@ -91,7 +91,7 @@ export async function generateSpeakingFeedback(apiKey, phrase, userTranscript) {
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama3-70b-8192',
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 300,
       temperature: 0.5,
       messages: [
