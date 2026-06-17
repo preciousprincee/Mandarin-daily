@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-body antialiased;
+    @apply bg-ink-50 text-ink-900;
+    @apply transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply bg-ink-950 text-ink-100;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border;
+    @apply bg-white border-ink-100;
+    @apply dark:bg-ink-800 dark:border-ink-700;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-6 py-3 rounded-xl font-semibold text-sm;
+    @apply bg-vermillion-500 text-white;
+    @apply hover:bg-vermillion-600 active:scale-95;
+    @apply transition-all duration-150;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-4 py-2 rounded-xl font-medium text-sm;
+    @apply text-ink-600 dark:text-ink-400;
+    @apply hover:bg-ink-100 dark:hover:bg-ink-700;
+    @apply transition-all duration-150 active:scale-95;
+  }
+
+  .chinese-large {
+    @apply font-display text-5xl font-black;
+    @apply text-ink-900 dark:text-ink-50;
+    line-height: 1.2;
+  }
+
+  .pinyin {
+    @apply font-mono text-vermillion-500 font-medium;
+    letter-spacing: 0.05em;
+  }
+
+  .tone-mark {
+    @apply inline-block px-1.5 py-0.5 rounded text-xs font-mono font-bold;
+    @apply bg-vermillion-50 text-vermillion-600;
+    @apply dark:bg-vermillion-500/20 dark:text-vermillion-400;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-ink-300 dark:bg-ink-600 rounded-full; }
+
+/* PWA safe areas */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
