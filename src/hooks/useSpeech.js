@@ -9,20 +9,35 @@ export function useSpeech() {
   const speak = useCallback((text, lang = 'zh-CN') => {
     if (!window.speechSynthesis) return
     window.speechSynthesis.cancel()
-    const utt = new SpeechSynthesisUtterance(text)
-    utt.lang = lang
-    utt.rate = 0.85
-    utt.pitch = 1
-    utt.onstart = () => setIsSpeaking(true)
-    utt.onend = () => setIsSpeaking(false)
-    utt.onerror = () => setIsSpeaking(false)
 
-    // Try to find a Chinese voice
-    const voices = window.speechSynthesis.getVoices()
-    const chineseVoice = voices.find(v => v.lang.startsWith('zh'))
-    if (chineseVoice) utt.voice = chineseVoice
+    const trySpeak = () => {
+      const utt = new SpeechSynthesisUtterance(text)
+      utt.lang = lang
+      utt.rate = 0.85
+      utt.pitch = 1
+      utt.onstart = () => setIsSpeaking(true)
+      utt.onend = () => setIsSpeaking(false)
+      utt.onerror = () => setIsSpeaking(false)
 
-    window.speechSynthesis.speak(utt)
+      const voices = window.speechSynthesis.getVoices()
+      const chineseVoice = voices.find(v => v.lang.startsWith('zh'))
+      if (chineseVoice) utt.voice = chineseVoice
+
+      window.speechSynthesis.speak(utt)
+    }
+
+    // iOS doesn't load voices until triggered — use silent utterance to unlock
+    if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.onvoiceschanged = null
+        trySpeak()
+      }
+      const silent = new SpeechSynthesisUtterance('')
+      silent.volume = 0
+      window.speechSynthesis.speak(silent)
+    } else {
+      trySpeak()
+    }
   }, [])
 
   const stopSpeaking = useCallback(() => {

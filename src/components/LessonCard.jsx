@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Volume2, Mic, MicOff, ChevronRight, CheckCircle, Loader2, BookOpen, MessageCircle, Music, Info } from 'lucide-react'
+import { Volume2, Mic, MicOff, ChevronRight, CheckCircle, Loader2, BookOpen, MessageCircle, Music, Info, SkipForward } from 'lucide-react'
 import { generateSpeakingFeedback } from '../utils/groq.js'
 
 const TABS = [
@@ -10,7 +10,7 @@ const TABS = [
   { id: 'practice', label: '练', icon: Mic },
 ]
 
-export default function LessonCard({ lesson, onComplete, completed, speech, apiKey }) {
+export default function LessonCard({ lesson, onComplete, onSkip, completed, speech, apiKey }) {
   const [activeTab, setActiveTab] = useState('word')
   const [feedback, setFeedback] = useState(null)
   const [gettingFeedback, setGettingFeedback] = useState(false)
@@ -101,7 +101,7 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
               <button
                 onClick={() => speak(lesson.word?.character)}
                 disabled={isSpeaking}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-700 hover:bg-ink-100 dark:hover:bg-ink-600 transition-all text-ink-700 dark:text-ink-200 font-medium text-sm"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-700 hover:bg-ink-100 dark:hover:bg-ink-600 transition-all text-ink-700 dark:text-ink-200 font-medium text-sm active:scale-95"
               >
                 <Volume2 size={16} className={isSpeaking ? 'text-vermillion-500 animate-pulse-soft' : ''} />
                 {isSpeaking ? 'Playing…' : 'Listen'}
@@ -130,7 +130,7 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
               <button
                 onClick={() => speak(lesson.phrase?.chinese)}
                 disabled={isSpeaking}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-700 hover:bg-ink-100 dark:hover:bg-ink-600 transition-all text-ink-700 dark:text-ink-200 font-medium text-sm"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-700 hover:bg-ink-100 dark:hover:bg-ink-600 transition-all text-ink-700 dark:text-ink-200 font-medium text-sm active:scale-95"
               >
                 <Volume2 size={16} className={isSpeaking ? 'text-vermillion-500 animate-pulse-soft' : ''} />
                 {isSpeaking ? 'Playing…' : 'Hear it spoken'}
@@ -185,7 +185,6 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
               <p className="text-ink-600 dark:text-ink-300 text-sm leading-relaxed mt-2">{lesson.toneLesson?.content}</p>
             </div>
 
-            {/* Tone chart visual */}
             <div className="grid grid-cols-4 gap-2">
               {[
                 { tone: '1st', mark: 'ā', desc: 'High, flat', color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/20' },
@@ -207,7 +206,7 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
               {hasTTS && (
                 <button
                   onClick={() => speak(lesson.toneLesson?.practice)}
-                  className="mt-2 flex items-center gap-1.5 text-xs text-vermillion-500 font-semibold"
+                  className="mt-2 flex items-center gap-1.5 text-xs text-vermillion-500 font-semibold active:scale-95"
                 >
                   <Volume2 size={13} />
                   Listen
@@ -234,7 +233,7 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
               <div className="space-y-3">
                 <button
                   onClick={() => handleMicFeedback(lesson.phrase?.chinese)}
-                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
+                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 ${
                     isListening
                       ? 'bg-vermillion-500 text-white animate-pulse-soft'
                       : 'bg-ink-900 dark:bg-ink-100 text-white dark:text-ink-900 hover:opacity-90'
@@ -284,9 +283,9 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
         )}
       </div>
 
-      {/* Complete button */}
-      {!completed && (
-        <div className="px-5 pb-5">
+      {/* Actions */}
+      {!completed ? (
+        <div className="px-5 pb-5 space-y-2">
           <button
             onClick={handleComplete}
             className={`btn-primary w-full py-3.5 text-base ${showComplete ? 'bg-jade-500 hover:bg-jade-600' : ''}`}
@@ -300,14 +299,19 @@ export default function LessonCard({ lesson, onComplete, completed, speech, apiK
               'Mark as Complete · +50 XP'
             )}
           </button>
+          <button
+            onClick={onSkip}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+          >
+            <SkipForward size={14} />
+            Skip this lesson
+          </button>
         </div>
-      )}
-
-      {completed && (
+      ) : (
         <div className="px-5 pb-5">
           <div className="flex items-center justify-center gap-2 py-3 rounded-xl bg-jade-500/10 text-jade-600 dark:text-jade-400 font-semibold text-sm">
             <CheckCircle size={16} />
-            Completed today!
+            Completed!
           </div>
         </div>
       )}

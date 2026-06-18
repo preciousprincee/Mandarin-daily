@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Loader2, RefreshCw, AlertTriangle, Zap } from 'lucide-react'
+import { Loader2, RefreshCw, AlertTriangle, Zap, ChevronRight } from 'lucide-react'
 import LessonCard from './LessonCard.jsx'
 import XPBar from './XPBar.jsx'
 import { generateLesson } from '../utils/groq.js'
@@ -10,24 +10,23 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
   const { settings, lessons, saveLesson, streak, xp, totalDays } = state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [lessonIndex, setLessonIndex] = useState(0)
 
   const todayKey = getTodayKey()
-  const todayLesson = lessons[todayKey]
-  const dayNumber = totalDays + 1
+  const sessionKey = `${todayKey}_${lessonIndex}`
+  const todayLesson = lessons[sessionKey]
+  const dayNumber = totalDays + 1 + lessonIndex
   const currentStage = getCurriculumStage(dayNumber)
 
-  // Auto-load today's lesson if API key exists and no lesson yet
+  // Auto-load when API key exists and no lesson for this slot yet
   useEffect(() => {
     if (settings.groqApiKey && !todayLesson) {
       loadLesson()
     }
-  }, [settings.groqApiKey])
+  }, [settings.groqApiKey, sessionKey])
 
   async function loadLesson() {
-    if (!settings.groqApiKey) {
-      setError('no_key')
-      return
-    }
+    if (!settings.groqApiKey) { setError('no_key'); return }
     setLoading(true)
     setError(null)
     try {
@@ -37,7 +36,7 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
         .filter(Boolean)
 
       const lesson = await generateLesson(settings.groqApiKey, dayNumber, previousTopics)
-      saveLesson(todayKey, { ...lesson, loaded: true, completed: false })
+      saveLesson(sessionKey, { ...lesson, loaded: true, completed: false })
     } catch (e) {
       setError(e.message || 'Failed to generate lesson')
     }
@@ -45,12 +44,20 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
   }
 
   function handleComplete() {
-    const result = onComplete(todayKey)
-    return result
+    return onComplete(sessionKey)
+  }
+
+  function handleSkip() {
+    setLessonIndex(i => i + 1)
+  }
+
+  function handleNextLesson() {
+    setLessonIndex(i => i + 1)
   }
 
   const today = new Date()
   const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const lessonsCompletedToday = Object.keys(lessons).filter(k => k.startsWith(todayKey) && lessons[k].completed).length
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -59,7 +66,9 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
         <div>
           <p className="text-xs font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-widest">{dateStr}</p>
           <h1 className="font-display text-2xl font-black text-ink-900 dark:text-ink-50 mt-0.5">
-            {todayLesson?.completed ? '今天完成了 ✓' : '今天的课 · Today\'s Lesson'}
+            {lessonsCompletedToday > 0
+              ? `${lessonsCompletedToday} lesson${lessonsCompletedToday > 1 ? 's' : ''} done today ✓`
+              : '今天的课 · Today\'s Lesson'}
           </h1>
         </div>
         {streak > 0 && (
@@ -83,6 +92,14 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
 
       {/* XP Bar */}
       <XPBar xp={xp} />
+
+      {/* Today's lesson count */}
+      {lessonsCompletedToday > 0 && (
+        <div className="flex items-center justify-center gap-2 text-sm text-ink-500 dark:text-ink-400">
+          <span className="font-mono font-bold text-vermillion-500">{lessonsCompletedToday}</span>
+          <span>lesson{lessonsCompletedToday > 1 ? 's' : ''} completed today — keep going!</span>
+        </div>
+      )}
 
       {/* Lesson Area */}
       {!settings.groqApiKey ? (
@@ -134,13 +151,26 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
           </div>
         </div>
       ) : todayLesson ? (
-        <LessonCard
-          lesson={todayLesson}
-          onComplete={handleComplete}
-          completed={todayLesson.completed}
-          speech={speech}
-          apiKey={settings.groqApiKey}
-        />
+        <div className="space-y-3">
+          <LessonCard
+            lesson={todayLesson}
+            onComplete={handleComplete}
+            onSkip={handleSkip}
+            completed={todayLesson.completed}
+            speech={speech}
+            apiKey={settings.groqApiKey}
+          />
+          {todayLesson.completed && (
+            <button
+              onClick={handleNextLesson}
+              className="btn-primary w-full py-3.5 text-base gap-2"
+            >
+              <Zap size={16} />
+              Next Lesson
+              <ChevronRight size={16} />
+            </button>
+          )}
+        </div>
       ) : (
         <div className="card p-8 text-center space-y-4">
           <div className="text-4xl">✨</div>
