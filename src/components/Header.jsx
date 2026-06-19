@@ -10,7 +10,7 @@ export default function Header({ darkMode, toggleDarkMode, streak, onSettingsCli
             onClick={() => onViewChange('home')}
             className="flex items-center gap-2 group"
           >
-            <span className="font-display text-xl font-black text-vermillion-500">每日</span>
+            <span className="font-display text-xl font-black text-vermillion-500">MD</span>
             <span className="font-body text-sm font-semibold text-ink-500 dark:text-ink-400 hidden sm:block">
               Mandarin Daily
             </span>
@@ -18,17 +18,21 @@ export default function Header({ darkMode, toggleDarkMode, streak, onSettingsCli
 
           {/* Nav */}
           <nav className="flex items-center gap-1">
-            {['home', 'progress', 'badges'].map((view) => (
+            {[
+              { id: 'home', label: 'Today' },
+              { id: 'progress', label: 'Progress' },
+              { id: 'badges', label: 'Badges' },
+            ].map(({ id, label }) => (
               <button
-                key={view}
-                onClick={() => onViewChange(view)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                  currentView === view
+                key={id}
+                onClick={() => onViewChange(id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  currentView === id
                     ? 'bg-vermillion-500 text-white'
                     : 'text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800'
                 }`}
               >
-                {view === 'home' ? '今天' : view === 'progress' ? 'Progress' : 'Badges'}
+                {label}
               </button>
             ))}
           </nav>

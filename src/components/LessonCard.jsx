@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { Volume2, Mic, MicOff, ChevronRight, CheckCircle, Loader2, BookOpen, MessageCircle, Music, Info, SkipForward } from 'lucide-react'
+import { Volume2, Mic, MicOff, ChevronRight, ChevronLeft, CheckCircle, Loader2, BookOpen, MessageCircle, Music, Info, SkipForward } from 'lucide-react'
 import { generateSpeakingFeedback } from '../utils/groq.js'
 
 const TABS = [
-  { id: 'word', label: '词', icon: BookOpen },
-  { id: 'phrase', label: '句', icon: MessageCircle },
-  { id: 'grammar', label: '法', icon: ChevronRight },
-  { id: 'tone', label: '调', icon: Music },
-  { id: 'practice', label: '练', icon: Mic },
+  { id: 'word', label: 'Word', icon: BookOpen },
+  { id: 'phrase', label: 'Phrase', icon: MessageCircle },
+  { id: 'grammar', label: 'Grammar', icon: ChevronRight },
+  { id: 'tone', label: 'Tones', icon: Music },
+  { id: 'practice', label: 'Practice', icon: Mic },
 ]
 
-export default function LessonCard({ lesson, onComplete, onSkip, completed, speech, apiKey }) {
+export default function LessonCard({ lesson, onComplete, onSkip, onPrev, hasPrev, completed, speech, apiKey }) {
   const [activeTab, setActiveTab] = useState('word')
   const [feedback, setFeedback] = useState(null)
   const [gettingFeedback, setGettingFeedback] = useState(false)
@@ -79,7 +79,7 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
             }`}
           >
             <Icon size={14} />
-            <span className="font-display">{label}</span>
+            <span>{label}</span>
           </button>
         ))}
       </div>
@@ -104,15 +104,25 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-700 hover:bg-ink-100 dark:hover:bg-ink-600 transition-all text-ink-700 dark:text-ink-200 font-medium text-sm active:scale-95"
               >
                 <Volume2 size={16} className={isSpeaking ? 'text-vermillion-500 animate-pulse-soft' : ''} />
-                {isSpeaking ? 'Playing…' : 'Listen'}
+                {isSpeaking ? 'Playing…' : 'Listen to word'}
               </button>
             )}
 
             <div className="bg-ink-50 dark:bg-ink-700/50 rounded-xl p-4">
-              <p className="text-sm text-ink-500 dark:text-ink-400 font-medium mb-1">Example sentence</p>
+              <p className="text-sm text-ink-500 dark:text-ink-400 font-medium mb-2">Example sentence</p>
               <p className="font-display text-base font-bold text-ink-900 dark:text-ink-100">{lesson.word?.example}</p>
               <p className="pinyin text-sm mt-1">{lesson.word?.examplePinyin}</p>
-              <p className="text-ink-500 dark:text-ink-400 text-sm italic">{lesson.word?.exampleMeaning}</p>
+              <p className="text-ink-500 dark:text-ink-400 text-sm italic mt-1">{lesson.word?.exampleMeaning}</p>
+              {hasTTS && (
+                <button
+                  onClick={() => speak(lesson.word?.example)}
+                  disabled={isSpeaking}
+                  className="mt-2 flex items-center gap-1.5 text-xs text-vermillion-500 font-semibold active:scale-95"
+                >
+                  <Volume2 size={13} />
+                  Listen to sentence
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -133,7 +143,7 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
                 className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-700 hover:bg-ink-100 dark:hover:bg-ink-600 transition-all text-ink-700 dark:text-ink-200 font-medium text-sm active:scale-95"
               >
                 <Volume2 size={16} className={isSpeaking ? 'text-vermillion-500 animate-pulse-soft' : ''} />
-                {isSpeaking ? 'Playing…' : 'Hear it spoken'}
+                {isSpeaking ? 'Playing…' : 'Listen to phrase'}
               </button>
             )}
 
@@ -166,6 +176,16 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
               <p className="font-display text-lg font-bold text-ink-900 dark:text-ink-100">{lesson.grammar?.example}</p>
               <p className="pinyin text-sm mt-1">{lesson.grammar?.examplePinyin}</p>
               <p className="text-ink-500 dark:text-ink-400 text-sm italic">{lesson.grammar?.exampleMeaning}</p>
+              {hasTTS && (
+                <button
+                  onClick={() => speak(lesson.grammar?.example)}
+                  disabled={isSpeaking}
+                  className="mt-2 flex items-center gap-1.5 text-xs text-vermillion-500 font-semibold active:scale-95"
+                >
+                  <Volume2 size={13} />
+                  Listen
+                </button>
+              )}
             </div>
 
             {lesson.culturalNote && (
@@ -181,15 +201,15 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
         {activeTab === 'tone' && (
           <div className="animate-fade-in space-y-4">
             <div>
-              <h3 className="font-display font-bold text-ink-900 dark:text-ink-100 text-lg">{lesson.toneLesson?.title}</h3>
+              <h3 className="font-semibold text-ink-900 dark:text-ink-100 text-base">{lesson.toneLesson?.title}</h3>
               <p className="text-ink-600 dark:text-ink-300 text-sm leading-relaxed mt-2">{lesson.toneLesson?.content}</p>
             </div>
 
             <div className="grid grid-cols-4 gap-2">
               {[
-                { tone: '1st', mark: 'ā', desc: 'High, flat', color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/20' },
+                { tone: '1st', mark: 'ā', desc: 'High flat', color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/20' },
                 { tone: '2nd', mark: 'á', desc: 'Rising', color: 'bg-jade-50 dark:bg-jade-500/10 text-jade-700 dark:text-jade-300 border-jade-200 dark:border-jade-500/20' },
-                { tone: '3rd', mark: 'ǎ', desc: 'Dip, rise', color: 'bg-gold-50 dark:bg-gold-500/10 text-gold-700 dark:text-gold-300 border-gold-200 dark:border-gold-500/20' },
+                { tone: '3rd', mark: 'ǎ', desc: 'Dip-rise', color: 'bg-gold-50 dark:bg-gold-500/10 text-gold-700 dark:text-gold-300 border-gold-200 dark:border-gold-500/20' },
                 { tone: '4th', mark: 'à', desc: 'Falling', color: 'bg-vermillion-50 dark:bg-vermillion-500/10 text-vermillion-700 dark:text-vermillion-300 border-vermillion-200 dark:border-vermillion-500/20' },
               ].map(t => (
                 <div key={t.tone} className={`rounded-xl border p-3 text-center ${t.color}`}>
@@ -206,6 +226,7 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
               {hasTTS && (
                 <button
                   onClick={() => speak(lesson.toneLesson?.practice)}
+                  disabled={isSpeaking}
                   className="mt-2 flex items-center gap-1.5 text-xs text-vermillion-500 font-semibold active:scale-95"
                 >
                   <Volume2 size={13} />
@@ -224,9 +245,19 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
               <p className="text-sm text-ink-700 dark:text-ink-200 leading-relaxed">{lesson.practicePrompt}</p>
             </div>
 
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-1">
               <p className="font-display text-lg font-bold text-ink-900 dark:text-ink-100">{lesson.phrase?.chinese}</p>
               <p className="pinyin">{lesson.phrase?.pinyin}</p>
+              {hasTTS && (
+                <button
+                  onClick={() => speak(lesson.phrase?.chinese)}
+                  disabled={isSpeaking}
+                  className="mx-auto flex items-center gap-1.5 text-xs text-vermillion-500 font-semibold active:scale-95 mt-1"
+                >
+                  <Volume2 size={13} />
+                  {isSpeaking ? 'Playing…' : 'Hear it first'}
+                </button>
+              )}
             </div>
 
             {hasSTT ? (
@@ -275,7 +306,7 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
               </div>
             ) : (
               <p className="text-center text-sm text-ink-400 dark:text-ink-500">
-                Speech recognition is not available in your browser.
+                Speech recognition not available in this browser.
                 <br />Try Chrome on desktop or Android.
               </p>
             )}
@@ -291,21 +322,30 @@ export default function LessonCard({ lesson, onComplete, onSkip, completed, spee
             className={`btn-primary w-full py-3.5 text-base ${showComplete ? 'bg-jade-500 hover:bg-jade-600' : ''}`}
           >
             {showComplete ? (
-              <>
-                <CheckCircle size={18} />
-                Lesson Complete!
-              </>
+              <><CheckCircle size={18} /> Lesson Complete!</>
             ) : (
               'Mark as Complete · +50 XP'
             )}
           </button>
-          <button
-            onClick={onSkip}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
-          >
-            <SkipForward size={14} />
-            Skip this lesson
-          </button>
+
+          <div className="flex items-center gap-2">
+            {hasPrev && (
+              <button
+                onClick={onPrev}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors border border-ink-200 dark:border-ink-700"
+              >
+                <ChevronLeft size={15} />
+                Back
+              </button>
+            )}
+            <button
+              onClick={onSkip}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300 transition-colors"
+            >
+              <SkipForward size={14} />
+              Skip this lesson
+            </button>
+          </div>
         </div>
       ) : (
         <div className="px-5 pb-5">

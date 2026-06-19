@@ -18,7 +18,6 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
   const dayNumber = totalDays + 1 + lessonIndex
   const currentStage = getCurriculumStage(dayNumber)
 
-  // Auto-load when API key exists and no lesson for this slot yet
   useEffect(() => {
     if (settings.groqApiKey && !todayLesson) {
       loadLesson()
@@ -51,6 +50,10 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
     setLessonIndex(i => i + 1)
   }
 
+  function handlePrev() {
+    if (lessonIndex > 0) setLessonIndex(i => i - 1)
+  }
+
   function handleNextLesson() {
     setLessonIndex(i => i + 1)
   }
@@ -68,7 +71,7 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
           <h1 className="font-display text-2xl font-black text-ink-900 dark:text-ink-50 mt-0.5">
             {lessonsCompletedToday > 0
               ? `${lessonsCompletedToday} lesson${lessonsCompletedToday > 1 ? 's' : ''} done today ✓`
-              : '今天的课 · Today\'s Lesson'}
+              : "Today's Lesson"}
           </h1>
         </div>
         {streak > 0 && (
@@ -93,7 +96,6 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
       {/* XP Bar */}
       <XPBar xp={xp} />
 
-      {/* Today's lesson count */}
       {lessonsCompletedToday > 0 && (
         <div className="flex items-center justify-center gap-2 text-sm text-ink-500 dark:text-ink-400">
           <span className="font-mono font-bold text-vermillion-500">{lessonsCompletedToday}</span>
@@ -106,7 +108,7 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
         <div className="card p-8 text-center space-y-4">
           <div className="text-4xl">🔑</div>
           <div>
-            <h3 className="font-display font-bold text-ink-900 dark:text-ink-100 text-lg">Set up your API key</h3>
+            <h3 className="font-semibold text-ink-900 dark:text-ink-100 text-lg">Set up your API key</h3>
             <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
               Add your Groq API key in settings to start generating daily lessons.
             </p>
@@ -156,6 +158,8 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
             lesson={todayLesson}
             onComplete={handleComplete}
             onSkip={handleSkip}
+            onPrev={handlePrev}
+            hasPrev={lessonIndex > 0}
             completed={todayLesson.completed}
             speech={speech}
             apiKey={settings.groqApiKey}
@@ -175,7 +179,7 @@ export default function HomeView({ state, speech, onComplete, onSettingsClick })
         <div className="card p-8 text-center space-y-4">
           <div className="text-4xl">✨</div>
           <div>
-            <h3 className="font-display font-bold text-lg text-ink-900 dark:text-ink-100">Ready for Day {dayNumber}?</h3>
+            <h3 className="font-semibold text-lg text-ink-900 dark:text-ink-100">Ready for Day {dayNumber}?</h3>
             <p className="text-sm text-ink-500 dark:text-ink-400 mt-1">
               {currentStage.label} — {currentStage.desc}
             </p>

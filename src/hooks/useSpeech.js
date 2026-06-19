@@ -8,35 +8,56 @@ export function useSpeech() {
 
   const speak = useCallback((text, lang = 'zh-CN') => {
     if (!window.speechSynthesis) return
+
+    // Cancel anything currently playing
     window.speechSynthesis.cancel()
 
-    const trySpeak = () => {
+    const utterThis = () => {
       const utt = new SpeechSynthesisUtterance(text)
       utt.lang = lang
-      utt.rate = 0.85
+      utt.rate = 0.8
       utt.pitch = 1
+      utt.volume = 1
+
       utt.onstart = () => setIsSpeaking(true)
       utt.onend = () => setIsSpeaking(false)
-      utt.onerror = () => setIsSpeaking(false)
+      utt.onerror = (e) => {
+        console.warn('TTS error', e)
+        setIsSpeaking(false)
+      }
 
       const voices = window.speechSynthesis.getVoices()
-      const chineseVoice = voices.find(v => v.lang.startsWith('zh'))
+      const chineseVoice =
+        voices.find(v => v.lang === 'zh-CN') ||
+        voices.find(v => v.lang === 'zh-TW') ||
+        voices.find(v => v.lang.startsWith('zh'))
+
       if (chineseVoice) utt.voice = chineseVoice
 
-      window.speechSynthesis.speak(utt)
+      // Small delay helps Chrome desktop avoid the "didn't start" bug
+      setTimeout(() => {
+        window.speechSynthesis.speak(utt)
+      }, 50)
     }
 
-    // iOS doesn't load voices until triggered — use silent utterance to unlock
-    if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null
-        trySpeak()
-      }
-      const silent = new SpeechSynthesisUtterance('')
-      silent.volume = 0
-      window.speechSynthesis.speak(silent)
+    const voices = window.speechSynthesis.getVoices()
+    if (voices.length > 0) {
+      utterThis()
     } else {
-      trySpeak()
+      let fired = false
+      window.speechSynthesis.onvoiceschanged = () => {
+        if (fired) return
+        fired = true
+        window.speechSynthesis.onvoiceschanged = null
+        utterThis()
+      }
+      // Fallback if onvoiceschanged never fires
+      setTimeout(() => {
+        if (!fired) {
+          fired = true
+          utterThis()
+        }
+      }, 500)
     }
   }, [])
 

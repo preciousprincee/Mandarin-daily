@@ -13,11 +13,11 @@ export default function XPBar({ xp }) {
           <span className="text-xs font-semibold text-vermillion-500 uppercase tracking-wide">
             Lv.{level.level}
           </span>
-          <span className="ml-2 font-display font-bold text-ink-900 dark:text-ink-100">
-            {level.title}
-          </span>
-          <span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500">
+          <span className="ml-2 font-semibold text-ink-900 dark:text-ink-100">
             {level.english}
+          </span>
+          <span className="ml-1.5 text-xs text-ink-400 dark:text-ink-500 italic">
+            {level.title}
           </span>
         </div>
         <span className="text-sm font-mono font-bold text-ink-600 dark:text-ink-300">
